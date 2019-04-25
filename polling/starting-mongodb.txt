@@ -1,0 +1,14 @@
+Starting mongo db
+
+My MongoDB installation is in /mongo/mongoddb
+My data folder is in /mongo/data
+
+1. Using Command Prompt navigate to 
+	cd /
+	cd mongo
+	cd mongodb/bin
+2. Start the server using
+	mongod.exe --dbpath /mongo/data
+
+
+One line path

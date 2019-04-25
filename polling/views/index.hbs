@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Polling</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        #nav-barr {
+            font-size: 20px;
+        }
+        #title-bar {
+            font-size: 20px;
+        }
+
+        .haha {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="nav-barr">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <a class="navbar-brand" href="http://localhost:5000/"><span id="title-bar">Context Aware Secure Voting App</span></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="http://localhost:5000/">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="http://localhost:3000/" target="_blank">Elections</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="" style="float: right;">Add</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+</div>
+
+
+    
+<div class="row haha">
+
+    {{#each polls }}
+        <div class="col-md-6">
+            <form onsubmit="vote(event);" id="{{this._id}}">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <span class="glyphicon glyphicon-arrow-right"></span>{{ this.topic }}
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            {{#each this.choices }}
+                                <li class="list-group-item">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="optionsRadios" value="{{@index}}">
+                                            {{ this.value }}
+                                            <div class="alignright" id="vote-count-{{../id}}-{{@index}}">{{ this.votes }}</div>
+                                        </label>
+                                    </div>
+                                </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                        <input type="submit" id="vote-btn-{{this.id}}" class="btn btn-primary btn-sm haha" value="Vote">
+                    </div>
+                </div>
+            </form>
+        </div>
+    {{/each}}
+</div>
+
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    var vote = function (event) {
+        event.preventDefault();
+        var pollId = event.target.id;
+        var choice = event.target.optionsRadios.value;
+        axios.post('/' + pollId + '/vote', {choice: choice, socketId: socketId});
+        document.querySelector('#vote-btn-' + pollId).disabled = true;
+        var voteCount = document.querySelector('#vote-count-' + pollId + '-' + choice);
+        voteCount.textContent++;
+        voteCount.style.color = 'blue';
+        voteCount.style.fontWeight = '900';
+    };
+</script>
+
+<script src="https://js.pusher.com/4.1/pusher.min.js"></script>
+<script>
+    var pusher = new Pusher('59144ea16f684daa156b', { cluster: 'ap2' });
+    var socketId;
+
+    // retrieve the socket ID once we're connected
+    pusher.connection.bind('connected', function() {
+        socketId = pusher.connection.socket_id;
+    });
+
+    pusher.subscribe('poll-events')
+            .bind('vote', function (data) {
+                var pollId = data.pollId;
+                var choice = data.choice;
+                var voteCount = document.querySelector('#vote-count-' + pollId + '-' + choice);
+                voteCount.textContent++;
+                // we'll flash the colour for a moment
+                var color = voteCount.style.color;
+                setTimeout(function () {
+                    voteCount.style.color = color;
+                }, 2000);
+                voteCount.style.color = 'green';
+            });
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
